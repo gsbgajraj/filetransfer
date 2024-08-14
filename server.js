@@ -50,7 +50,7 @@ let uploadHistory = [];
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads')); // Serve files from the uploads directory
 
-app.post('/upload', upload.array('files', 10), (req, res) => {
+app.post('/upload', upload.array('files', 1000), (req, res) => {
     req.files.forEach(file => {
         uploadHistory.push({
             filename: file.filename,
