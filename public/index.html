@@ -24,6 +24,8 @@
     </form>
     <div id="progressBar"><div></div></div>
     <div id="uploadStatus"></div>
+    <h2>Upload History</h2>
+    <div id="history"></div>
 
     <script>
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
@@ -38,7 +40,8 @@
 
             xhr.onload = function() {
                 if (xhr.status === 200) {
-                    document.getElementById('uploadStatus').innerHTML = xhr.responseText;
+                    document.getElementById('uploadStatus').innerHTML = 'Upload successful';
+                    loadHistory();
                 } else {
                     document.getElementById('uploadStatus').innerHTML = 'Upload failed';
                 }
@@ -47,9 +50,29 @@
             xhr.open('POST', '/upload');
             xhr.send(formData);
         });
+
+        function loadHistory() {
+            const xhr = new XMLHttpRequest();
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const files = JSON.parse(xhr.responseText);
+                    const historyDiv = document.getElementById('history');
+                    historyDiv.innerHTML = files.map(file => `<a href="${file.url}" download>${file.originalname}</a>`).join('<br>');
+                } else {
+                    document.getElementById('history').innerHTML = 'Failed to load history';
+                }
+            };
+            xhr.open('GET', '/history');
+            xhr.send();
+        }
+
+        // Load history on page load
+        window.onload = loadHistory;
     </script>
 </body>
 </html> -->
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -58,27 +81,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Transfer Tool</title>
     <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f9f9f9;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        #uploadContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+        input[type="file"] {
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
         #progressBar {
             width: 100%;
             background-color: #f3f3f3;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 15px;
         }
         #progressBar div {
             width: 0;
             height: 30px;
             background-color: #4caf50;
+            transition: width 0.4s ease;
+        }
+        #uploadStatus {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        #historyContainer {
+            max-height: 200px;
+            width: 80%;
+            overflow-y: auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+        #history {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 14px;
+        }
+        #history a {
+            text-decoration: none;
+            color: #4caf50;
+        }
+        #history a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <h1>Upload Files to Transfer</h1>
-    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="files" multiple required>
-        <button type="submit">Upload</button>
-    </form>
-    <div id="progressBar"><div></div></div>
-    <div id="uploadStatus"></div>
+    <div id="uploadContainer">
+        <h1>Upload Files to Transfer</h1>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="files" multiple required>
+            <button type="submit">Upload</button>
+        </form>
+        <div id="progressBar"><div></div></div>
+        <div id="uploadStatus"></div>
+    </div>
+    
     <h2>Upload History</h2>
-    <div id="history"></div>
+    <div id="historyContainer">
+        <div id="history"></div>
+    </div>
 
     <script>
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
